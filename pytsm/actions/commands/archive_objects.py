@@ -21,14 +21,26 @@ from ..base import TsmCommand
 class Command(TsmCommand):
     help = "List number of archives objects and size by management class for a specific node"
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument('--node', dest="node",
+                           help='Name of node')
+
     def handle_tsm(self, args, f, d):
         f.output_head("Archive Objects")
 
+        if args.node is not None:
+            cargs = (args.node.upper(), )
+        else:
+            cargs = None
+
         results = d.execute("""SELECT a.node_name, a.class_name, CAST(FLOAT(SUM(ao.bfsize))/1024/1024/1024 as DEC(14,1)) as size_gb, count(ao.bfsize) as number_of_objects
                FROM  archives a, archive_objects ao
-               WHERE a.object_id=ao.objid and a.node_name='DEHZE01-LSV001'
+               WHERE a.object_id=ao.objid and a.node_name='%s'
                GROUP BY a.node_name, a.class_name
-""")
+""" % cargs )
 
         headers = [
             {"name": "Node Name",},
