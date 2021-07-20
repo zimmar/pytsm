@@ -90,7 +90,7 @@ class FormatterFancy(Formatter):
                 elif f == "float":
                     row_array[col] = locale.format_string(
                         headers[col]['spec'],
-                        float(row_array[col]), grouping=True)
+                        float(row_array[col].replace(',','.')), grouping=True)
 
         return results, headers
 
