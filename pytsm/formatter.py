@@ -25,7 +25,7 @@ import sys
 from . import texttable
 
 
-class formatter(object):
+class Formatter(object):
 
     def __init__(self, output=sys.stdout):
         self.output = output
@@ -48,7 +48,7 @@ class formatter(object):
         self.output.write("\n")
 
 
-class formatter_csv(formatter):
+class FormatterCsv(Formatter):
 
     def output_results(self, results, headers):
         writer = csv.writer(self.output, delimiter=str(','))
@@ -57,8 +57,10 @@ class formatter_csv(formatter):
             writer.writerow(row)
 
 
-class formatter_fancy(formatter):
-    def format_results(self, results, headers):
+class FormatterFancy(Formatter):
+
+    @staticmethod
+    def format_results(results, headers):
 
         # copy data
         results = copy.deepcopy(list(results))
@@ -82,18 +84,18 @@ class formatter_fancy(formatter):
                 if "format" in headers[col]:
                     f = headers[col]['format']
                 if f == "integer":
-                    row_array[col] = locale.format(
+                    row_array[col] = locale.format_string(
                         headers[col]['spec'],
                         int(row_array[col]), grouping=True)
                 elif f == "float":
-                    row_array[col] = locale.format(
+                    row_array[col] = locale.format_string(
                         headers[col]['spec'],
                         float(row_array[col]), grouping=True)
 
         return results, headers
 
 
-class formatter_html(formatter_fancy):
+class FormatterHtml(FormatterFancy):
 
     def output_results(self, results, headers):
         results, headers = self.format_results(results, headers)
@@ -157,7 +159,7 @@ class formatter_html(formatter_fancy):
         self.output.write("</p>\n")
 
 
-class formatter_readable(formatter_fancy):
+class FormatterReadable(FormatterFancy):
 
     def output_results(self, results, headers):
         locale.setlocale(locale.LC_ALL, '')
@@ -203,10 +205,10 @@ class formatter_readable(formatter_fancy):
 
 def get_formatter(output_format, *args, **kwargs):
     if output_format == "csv":
-        return formatter_csv(*args, **kwargs)
+        return FormatterCsv(*args, **kwargs)
     elif output_format == "html":
-        return formatter_html(*args, **kwargs)
+        return FormatterHtml(*args, **kwargs)
     elif output_format == "readable":
-        return formatter_readable(*args, **kwargs)
+        return FormatterReadable(*args, **kwargs)
     else:
         raise RuntimeError("Unknown format %s" % output_format)
